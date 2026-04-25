@@ -3,25 +3,37 @@ const countdownElement = document.querySelector(".countdown");
 const whatsappLinks = document.querySelectorAll(".message-link");
 const presenceForm = document.querySelector("#presence-form");
 const guestNameInput = document.querySelector("#guest-name");
+const whatsappNameInput = document.querySelector("#guest-name-whatsapp");
 const presenceFeedback = document.querySelector("#presence-feedback");
-const whatsappConfirmLink = document.querySelector("#whatsapp-confirm-link");
+const whatsappCard = document.querySelector("#whatsapp-card");
+const whatsappConfirmButton = document.querySelector("#whatsapp-confirm-button");
 const animatedNames = document.querySelectorAll(".name-boy, .name-girl");
 const addressCopyFields = document.querySelectorAll(".address-copy-field");
 const copyToast = document.querySelector("#copy-toast");
 const inviteConfig = window.INVITE_CONFIG || {};
 const whatsappNumber = "5531993586484";
-const whatsappMessage =
-  "Oi! Confirmando minha presenca no cha revelacao do dia 24 de maio. Vou estar com voces nesse momento especial e levar as fraldas com carinho.";
+const whatsappMessageTemplate =
+  "Oi, eu (nome da pessoa)! Estou confirmando minha presença no chá revelação do dia 24 de maio 💙💖\n\nVai ser um prazer estar com vocês nesse momento tão especial e cheio de amor! Pode deixar que levarei as fraldas com todo carinho 🥰";
+const notificationSoundPath = "notification_o14egLP.mp3";
+const notificationAudio = new Audio(notificationSoundPath);
 const initialGirlAnimationDelay = 2500;
 const initialBoyAnimationDelay = 3000;
 const nameAnimationDuration = 4000;
 const nameReturnDuration = 900;
 const copyToastDuration = 2200;
-const presenceFeedbackDuration = 3200;
+const presenceFeedbackDuration = 4200;
+const lockedWhatsAppButtonText = "Confirme no site primeiro";
+const unlockedWhatsAppButtonText = "Enviar no WhatsApp";
+
+notificationAudio.preload = "auto";
+notificationAudio.volume = 0.85;
+notificationAudio.load();
 
 updateCountdown();
 markExternalLinks();
 enhanceWhatsAppLinks();
+setupGuestNameInputs();
+lockWhatsAppConfirm();
 setupPresenceForm();
 setupWhatsAppLink();
 prepareAnimatedNameLetters();
@@ -37,7 +49,8 @@ function updateCountdown() {
   const now = new Date();
   const diffInMs = eventDate - now;
   const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-  const baseMessage = countdownElement.dataset.baseText || countdownElement.textContent.trim();
+  const baseMessage =
+    countdownElement.dataset.baseText || countdownElement.textContent.trim();
 
   if (diffInDays > 1) {
     countdownElement.textContent = `${baseMessage} Faltam ${diffInDays} dias.`;
@@ -54,7 +67,8 @@ function updateCountdown() {
     return;
   }
 
-  countdownElement.textContent = "Esse momento ja aconteceu, mas continua guardado com carinho.";
+  countdownElement.textContent =
+    "Esse momento ja aconteceu, mas continua guardado com carinho.";
 }
 
 function markExternalLinks() {
@@ -74,13 +88,9 @@ function enhanceWhatsAppLinks() {
 }
 
 function setupPresenceForm() {
-  if (!presenceForm || !guestNameInput || !presenceFeedback) {
+  if (!presenceForm || !guestNameInput) {
     return;
   }
-
-  guestNameInput.addEventListener("input", () => {
-    clearPresenceFeedback();
-  });
 
   presenceForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -88,22 +98,27 @@ function setupPresenceForm() {
     const guestName = guestNameInput.value.trim();
 
     if (!guestName) {
-      setPresenceFeedback("Digite seu nome para confirmar.");
+      showStatusToast("Digite seu nome para confirmar.");
+      focusPresenceNameInput();
       return;
     }
 
+    playNotificationSound();
     saveGuestLocally(guestName);
 
     if (hasRemoteConfirmationSetup()) {
       submitPresenceToRemoteForm(guestName);
-      clearPresenceFeedback();
+      unlockWhatsAppConfirm(guestName);
       showStatusToast(
-        inviteConfig.confirmationSuccessMessage || "Presenca confirmada"
+        inviteConfig.confirmationSuccessMessage ||
+          "Presenca confirmada. Agora envie a mensagem no WhatsApp.",
+        true
       );
     } else {
-      setPresenceFeedback(
-        `${guestName}, sua presenca foi salva so neste aparelho. ` +
-          "Para receber a lista completa de todos os convidados, configure o Google Form no arquivo config.js."
+      unlockWhatsAppConfirm(guestName);
+      showStatusToast(
+        `${guestName}, presenca salva. Agora envie a mensagem no WhatsApp.`,
+        true
       );
     }
 
@@ -112,34 +127,136 @@ function setupPresenceForm() {
 }
 
 function setupWhatsAppLink() {
-  if (!whatsappConfirmLink) {
+  if (!whatsappConfirmButton) {
     return;
   }
 
-  if (whatsappNumber.trim()) {
-    const sanitizedNumber = whatsappNumber.replace(/\D/g, "");
-    whatsappConfirmLink.href = `https://wa.me/${sanitizedNumber}?text=${encodeURIComponent(whatsappMessage)}`;
+  whatsappConfirmButton.addEventListener("click", () => {
+    if (whatsappConfirmButton.disabled) {
+      showStatusToast("Confirme no site primeiro.");
+      focusPresenceNameInput();
+      return;
+    }
+
+    const guestName = whatsappNameInput?.value.trim() || "";
+
+    if (!guestName) {
+      showStatusToast("Digite seu nome para enviar no WhatsApp");
+      focusWhatsAppNameInput();
+      return;
+    }
+
+    const whatsappUrl = buildWhatsAppUrl(guestName);
+    resetConfirmationFlow();
+    window.location.href = whatsappUrl;
+  });
+}
+
+function setupGuestNameInputs() {
+  if (guestNameInput) {
+    guestNameInput.addEventListener("input", () => {
+      clearPresenceFeedback();
+    });
+  }
+}
+
+function focusPresenceNameInput() {
+  if (!guestNameInput) {
     return;
   }
 
-  whatsappConfirmLink.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsappMessage)}`;
+  guestNameInput.focus();
+}
+
+function focusWhatsAppNameInput() {
+  if (!whatsappNameInput) {
+    return;
+  }
+
+  whatsappNameInput.focus();
+}
+
+function lockWhatsAppConfirm() {
+  if (whatsappCard) {
+    whatsappCard.hidden = true;
+  }
+
+  if (!whatsappConfirmButton) {
+    return;
+  }
+
+  whatsappConfirmButton.disabled = true;
+  whatsappConfirmButton.setAttribute("aria-disabled", "true");
+  whatsappConfirmButton.textContent = lockedWhatsAppButtonText;
+}
+
+function unlockWhatsAppConfirm(guestName) {
+  if (whatsappCard) {
+    whatsappCard.hidden = false;
+  }
+
+  if (!whatsappConfirmButton) {
+    return;
+  }
+
+  whatsappConfirmButton.disabled = false;
+  whatsappConfirmButton.setAttribute("aria-disabled", "false");
+  whatsappConfirmButton.textContent = unlockedWhatsAppButtonText;
+
+  if (whatsappNameInput && guestName && !whatsappNameInput.value.trim()) {
+    whatsappNameInput.value = guestName;
+  }
+}
+
+function resetConfirmationFlow() {
+  hideStatusToast();
+  lockWhatsAppConfirm();
+
+  if (whatsappNameInput) {
+    whatsappNameInput.value = "";
+  }
+
+  if (presenceForm) {
+    presenceForm.reset();
+  }
+}
+
+function buildWhatsAppMessage(guestName) {
+  const displayName = guestName || "(nome da pessoa)";
+
+  return whatsappMessageTemplate.replace("(nome da pessoa)", displayName);
+}
+
+function buildWhatsAppUrl(guestName) {
+  const sanitizedNumber = whatsappNumber.replace(/\D/g, "");
+  const message = buildWhatsAppMessage(guestName);
+
+  if (sanitizedNumber) {
+    return `https://api.whatsapp.com/send?phone=${sanitizedNumber}&text=${encodeURIComponent(message)}`;
+  }
+
+  return `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
 }
 
 function saveGuestLocally(guestName) {
-  const storedGuests = JSON.parse(localStorage.getItem("confirmacoes-cha-revelacao") || "[]");
+  const storedGuests = JSON.parse(
+    localStorage.getItem("confirmacoes-cha-revelacao") || "[]"
+  );
 
   storedGuests.push({
     name: guestName,
-    confirmedAt: new Date().toISOString()
+    confirmedAt: new Date().toISOString(),
   });
 
-  localStorage.setItem("confirmacoes-cha-revelacao", JSON.stringify(storedGuests));
+  localStorage.setItem(
+    "confirmacoes-cha-revelacao",
+    JSON.stringify(storedGuests)
+  );
 }
 
 function hasRemoteConfirmationSetup() {
   return Boolean(
-    inviteConfig.confirmationFormAction &&
-      inviteConfig.confirmationNameField
+    inviteConfig.confirmationFormAction && inviteConfig.confirmationNameField
   );
 }
 
@@ -181,12 +298,21 @@ function prepareAnimatedNameLetters() {
       letterSpan.className = "name-letter";
       letterSpan.textContent = letter;
       letterSpan.style.setProperty("--letter-index", String(index));
-      letterSpan.style.setProperty("--letter-reverse-index", String(totalLetters - index - 1));
+      letterSpan.style.setProperty(
+        "--letter-reverse-index",
+        String(totalLetters - index - 1)
+      );
       nameText.appendChild(letterSpan);
     });
 
-    nameElement.style.setProperty("--effect-delay", `${200 + totalLetters * 70}ms`);
-    nameElement.style.setProperty("--name-scene-duration", `${nameAnimationDuration}ms`);
+    nameElement.style.setProperty(
+      "--effect-delay",
+      `${200 + totalLetters * 70}ms`
+    );
+    nameElement.style.setProperty(
+      "--name-scene-duration",
+      `${nameAnimationDuration}ms`
+    );
   });
 }
 
@@ -236,7 +362,9 @@ async function copyAddressField(field) {
   }
 
   const textToCopy = field.value.trim();
-  const hint = field.closest(".highlight-card-address")?.querySelector(".copy-hint");
+  const hint = field
+    .closest(".highlight-card-address")
+    ?.querySelector(".copy-hint");
 
   field.focus();
   field.select();
@@ -273,6 +401,26 @@ async function copyAddressField(field) {
   }, 120);
 }
 
+function playNotificationSound() {
+  try {
+    notificationAudio.pause();
+    notificationAudio.currentTime = 0;
+    notificationAudio.volume = 0.85;
+
+    const playPromise = notificationAudio.play();
+
+    if (playPromise) {
+      playPromise.catch(() => {
+        const retryAudio = new Audio(notificationSoundPath);
+        retryAudio.volume = 0.85;
+        retryAudio.play().catch(() => {});
+      });
+    }
+  } catch (error) {
+    console.warn("Nao foi possivel tocar o som de confirmacao.", error);
+  }
+}
+
 function updateCopyHint(hint, copied) {
   if (!hint) {
     return;
@@ -297,10 +445,13 @@ function updateCopyHint(hint, copied) {
   hint.dataset.resetTimer = String(timerId);
 }
 
-function showStatusToast(message) {
+function showStatusToast(message, persist = false) {
   if (!copyToast) {
     return;
   }
+
+  copyToast.classList.remove("is-visible");
+  void copyToast.offsetWidth;
 
   copyToast.textContent = message;
   copyToast.classList.add("is-visible");
@@ -309,14 +460,48 @@ function showStatusToast(message) {
 
   if (previousTimerId) {
     window.clearTimeout(previousTimerId);
+    delete copyToast.dataset.hideTimer;
   }
 
-  const timerId = window.setTimeout(() => {
-    copyToast.classList.remove("is-visible");
-    delete copyToast.dataset.hideTimer;
-  }, copyToastDuration);
+  if (!persist) {
+    const timerId = window.setTimeout(() => {
+      copyToast.classList.remove("is-visible");
+      delete copyToast.dataset.hideTimer;
+    }, copyToastDuration);
 
-  copyToast.dataset.hideTimer = String(timerId);
+    copyToast.dataset.hideTimer = String(timerId);
+  }
+}
+
+function hideStatusToast() {
+  if (!copyToast) {
+    return;
+  }
+
+  const previousTimerId = Number(copyToast.dataset.hideTimer || 0);
+
+  if (previousTimerId) {
+    window.clearTimeout(previousTimerId);
+    delete copyToast.dataset.hideTimer;
+  }
+
+  copyToast.classList.remove("is-visible");
+}
+
+function clearPresenceFeedback() {
+  if (!presenceFeedback) {
+    return;
+  }
+
+  const previousTimerId = Number(presenceFeedback.dataset.hideTimer || 0);
+
+  if (previousTimerId) {
+    window.clearTimeout(previousTimerId);
+    delete presenceFeedback.dataset.hideTimer;
+  }
+
+  presenceFeedback.classList.remove("is-success", "is-warning", "is-info");
+  presenceFeedback.textContent = "";
 }
 
 function setPresenceFeedback(message) {
@@ -337,21 +522,6 @@ function setPresenceFeedback(message) {
   }, presenceFeedbackDuration);
 
   presenceFeedback.dataset.hideTimer = String(timerId);
-}
-
-function clearPresenceFeedback() {
-  if (!presenceFeedback) {
-    return;
-  }
-
-  const previousTimerId = Number(presenceFeedback.dataset.hideTimer || 0);
-
-  if (previousTimerId) {
-    window.clearTimeout(previousTimerId);
-    delete presenceFeedback.dataset.hideTimer;
-  }
-
-  presenceFeedback.textContent = "";
 }
 
 function triggerNameAnimation(nameElement) {
@@ -379,7 +549,9 @@ function startNameReturn(nameElement) {
     return;
   }
 
-  const previousAnimationTimerId = Number(nameElement.dataset.animationTimer || 0);
+  const previousAnimationTimerId = Number(
+    nameElement.dataset.animationTimer || 0
+  );
 
   if (previousAnimationTimerId) {
     window.clearTimeout(previousAnimationTimerId);

@@ -9,9 +9,9 @@
       name="description"
       content="Convite online para chá de bebê e chá revelação com localização e mensagens prontas."
     />
-    <link rel="stylesheet" href="styles.css" />
-    <script src="config.js" defer></script>
-    <script src="script.js" defer></script>
+    <link rel="stylesheet" href="styles.css?v=20260425-01" />
+    <script src="config.js?v=20260425-01" defer></script>
+    <script src="script.js?v=20260425-01" defer></script>
   </head>
   <body>
     <div class="page-glow page-glow-left" aria-hidden="true"></div>
@@ -41,13 +41,17 @@
               <span class="toy-bow">🎀</span>
             </span>
           </span>
-          
           <span class="hero-question-end">? 😍</span>
         </p>
         <p class="hero-copy">
-          No dia 24 de maio, das 13h às 17h, queremos viver esse momento com você em uma tarde leve, especial e cheia de carinho.
-          O momento mais esperado do nosso chá revelação será das 15h às 16h, então não perca essa hora tão especial 💙💖 <br>
-          <strong>Pedimos com mt amor levem fralda (P), junto de um mimo para o bebê pfvr 🥺</strong>
+          No dia 24 de maio, das 13h às 17h, queremos viver esse momento com
+          você em uma tarde leve, especial e cheia de carinho. O momento mais
+          esperado do nosso chá revelação será das 15h às 16h, então não perca
+          essa hora tão especial 💙💖
+          <strong>
+            Pedimos com mt amor levem fralda (P), junto de um mimo para o bebê
+            pfvr 🥺
+          </strong>
         </p>
 
         <div class="hero-highlights">
@@ -57,7 +61,7 @@
           </article>
           <article class="highlight-card">
             <span class="highlight-label">Horário</span>
-            <strong>13h às 18h</strong>
+            <strong>13h às 17</strong>
           </article>
           <article class="highlight-card highlight-card-address">
             <span class="highlight-label">Onde</span>
@@ -119,7 +123,9 @@
           <article class="message-card">
             <span class="message-tag">Confirmação no site</span>
             <p>
-              Preencha seu nome e toque no botão para registrar sua presença. Ex:Pedro e família
+              Preencha seu nome e toque no botão para registrar sua presença.
+              Depois disso, a mensagem automática no WhatsApp será liberada.
+              Ex:Pedro e família
             </p>
             <form class="confirmation-form" id="presence-form">
               <label class="form-label" for="guest-name">Seu nome</label>
@@ -134,27 +140,36 @@
               <button class="message-link full" type="submit">
                 Confirmar minha presença
               </button>
-              <p class="form-feedback" id="presence-feedback" aria-live="polite"></p>
             </form>
           </article>
 
-          <article class="message-card">
+          <article class="message-card message-card-whatsapp" id="whatsapp-card" hidden>
             <span class="message-tag">Mensagem automática</span>
             <p>
-              Toque no botão para abrir o WhatsApp com a mensagem pronta de
-              confirmação.
+              Primeiro confirme sua presença no site. Depois o WhatsApp será
+              liberado para você enviar a mensagem pronta.
             </p>
-            <div class="message-actions">
-              <a
+            <form class="confirmation-form confirmation-form-whatsapp" id="whatsapp-message-form">
+              <label class="form-label" for="guest-name-whatsapp">Seu nome</label>
+              <input
+                class="form-input"
+                id="guest-name-whatsapp"
+                name="guestNameWhatsapp"
+                type="text"
+                placeholder="Digite seu nome"
+                autocomplete="name"
+                required
+              />
+              <button
                 class="message-link full"
-                id="whatsapp-confirm-link"
-                href="https://wa.me/5531993586484?text=Oi%21%20Confirmando%20minha%20presenca%20no%20cha%20revelacao%20do%20dia%2024%20de%20maio.%20Vou%20estar%20com%20voces%20nesse%20momento%20especial%20e%20levar%20as%20fraldas%20com%20carinho."
-                target="_blank"
-                rel="noreferrer"
+                id="whatsapp-confirm-button"
+                type="button"
+                disabled
+                aria-disabled="true"
               >
-                Enviar no WhatsApp
-              </a>
-            </div>
+                Confirme no site primeiro
+              </button>
+            </form>
           </article>
         </div>
       </section>

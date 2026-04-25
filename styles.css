@@ -20,6 +20,10 @@
   box-sizing: border-box;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 html {
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
@@ -259,31 +263,53 @@ h1 {
 .copy-toast {
   position: fixed;
   left: 50%;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  bottom: 120px;
+  transform: translate(-50%, 80px) scale(0.88);
   z-index: 50;
-  max-width: min(92vw, 360px);
-  padding: 12px 18px;
-  border-radius: 999px;
-  background: rgba(51, 46, 38, 0.94);
+  max-width: min(92vw, 520px);
+  padding: 16px 24px;
+  border-radius: 20px;
+  background: rgba(51, 46, 38, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 250, 245, 0.12);
   color: #fffaf5;
-  font-size: 0.94rem;
+  font-size: 1.02rem;
   font-weight: 700;
   letter-spacing: 0.01em;
   text-align: center;
   box-shadow:
-    0 18px 36px rgba(51, 46, 38, 0.24),
-    0 8px 18px rgba(20, 16, 12, 0.2);
+    0 32px 64px rgba(0, 0, 0, 0.24),
+    0 16px 32px rgba(0, 0, 0, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
   opacity: 0;
   pointer-events: none;
-  transform: translate(-50%, 18px) scale(0.96);
-  transition:
-    opacity 180ms ease,
-    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+  transition: none;
 }
 
 .copy-toast.is-visible {
-  opacity: 1;
-  transform: translate(-50%, 0) scale(1);
+  animation: ios-notification-pop 900ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes ios-notification-pop {
+  0% {
+    opacity: 0;
+    transform: translate(-50%, 80px) scale(0.88);
+  }
+  
+  60% {
+    opacity: 1;
+    transform: translate(-50%, -8px) scale(1.02);
+  }
+  
+  80% {
+    transform: translate(-50%, 2px) scale(0.98);
+  }
+  
+  100% {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
 }
 
 .hero-actions {
@@ -509,9 +535,10 @@ button {
   border-radius: 26px;
   border: 1px solid var(--line);
   padding: 24px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: auto 6.8em 1fr;
   gap: 18px;
+  align-items: start;
   box-shadow: 0 12px 24px rgba(78, 59, 39, 0.05);
 }
 
@@ -523,14 +550,26 @@ button {
   margin: 0;
   color: var(--text);
   line-height: 1.75;
-  white-space: pre-line;
+  white-space: normal;
   max-width: 52ch;
 }
 
+.confirmation-form-whatsapp {
+  width: 100%;
+}
+
+.form-feedback-spacer {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .confirmation-form {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
-  margin-top: auto;
+  margin-top: 0;
+  width: 100%;
+  height: 100%;
 }
 
 .form-label {
@@ -559,6 +598,43 @@ button {
   margin: 0;
   color: var(--green);
   font-weight: 700;
+  border-radius: 16px;
+  line-height: 1.5;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    padding 180ms ease;
+}
+
+.form-feedback:not(:empty) {
+  padding: 12px 14px;
+  border: 1px solid rgba(132, 151, 134, 0.24);
+  background: rgba(223, 231, 222, 0.68);
+}
+
+.form-feedback.is-success:not(:empty) {
+  color: #335340;
+  border-color: rgba(110, 148, 117, 0.28);
+  background: rgba(220, 235, 222, 0.9);
+}
+
+.form-feedback.is-warning:not(:empty) {
+  color: #7d5b2a;
+  border-color: rgba(191, 153, 84, 0.26);
+  background: rgba(248, 236, 204, 0.92);
+}
+
+.form-feedback.is-info:not(:empty) {
+  color: #5b4f43;
+  border-color: rgba(168, 155, 133, 0.24);
+  background: rgba(239, 232, 221, 0.9);
+}
+
+.message-card-whatsapp .form-feedback:not(:empty) {
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .message-actions {
@@ -593,6 +669,21 @@ button {
 
 .message-link:hover{
   background-color: #445242
+}
+
+.message-link:disabled {
+  background: #b8b2a6;
+  color: rgba(255, 250, 245, 0.92);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.message-link:disabled:hover,
+.message-link:disabled:active {
+  background: #b8b2a6;
+  box-shadow: none;
+  transform: none;
 }
 
 .copy-button {
@@ -694,6 +785,10 @@ button {
     width: 100%;
   }
 
+  .message-card {
+    grid-template-rows: auto auto 1fr;
+  }
+
   .message-actions {
     flex-direction: column;
   }
@@ -703,6 +798,13 @@ button {
   .info-card {
     border-radius: 24px;
     padding: 24px 20px;
+  }
+
+  .copy-toast {
+    bottom: 100px;
+    max-width: min(90vw, 480px);
+    padding: 14px 20px;
+    font-size: 0.98rem;
   }
 }
 
@@ -1325,6 +1427,10 @@ button {
     animation: none;
     transform: none;
   }
+
+  .copy-toast.is-visible {
+    animation: none;
+  }
 }
 
 @media (min-width: 921px) {
@@ -1337,9 +1443,8 @@ button {
   }
 
   .confirmation-form {
-    display: flex;
     flex: 1;
-    flex-direction: column;
+    justify-content: flex-start;
   }
 
   .confirmation-form .message-link.full {
