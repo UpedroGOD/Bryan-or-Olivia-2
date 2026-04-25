@@ -3,7 +3,6 @@ const countdownElement = document.querySelector(".countdown");
 const whatsappLinks = document.querySelectorAll(".message-link");
 const presenceForm = document.querySelector("#presence-form");
 const guestNameInput = document.querySelector("#guest-name");
-const whatsappNameInput = document.querySelector("#guest-name-whatsapp");
 const presenceFeedback = document.querySelector("#presence-feedback");
 const whatsappCard = document.querySelector("#whatsapp-card");
 const whatsappConfirmButton = document.querySelector("#whatsapp-confirm-button");
@@ -24,6 +23,7 @@ const copyToastDuration = 2200;
 const presenceFeedbackDuration = 4200;
 const lockedWhatsAppButtonText = "Confirme no site primeiro";
 const unlockedWhatsAppButtonText = "Enviar no WhatsApp";
+let confirmedGuestName = "";
 
 notificationAudio.preload = "auto";
 notificationAudio.volume = 0.85;
@@ -138,11 +138,11 @@ function setupWhatsAppLink() {
       return;
     }
 
-    const guestName = whatsappNameInput?.value.trim() || "";
+    const guestName = confirmedGuestName.trim();
 
     if (!guestName) {
-      showStatusToast("Digite seu nome para enviar no WhatsApp");
-      focusWhatsAppNameInput();
+      showStatusToast("Confirme sua presença no site primeiro.");
+      focusPresenceNameInput();
       return;
     }
 
@@ -168,14 +168,6 @@ function focusPresenceNameInput() {
   guestNameInput.focus();
 }
 
-function focusWhatsAppNameInput() {
-  if (!whatsappNameInput) {
-    return;
-  }
-
-  whatsappNameInput.focus();
-}
-
 function lockWhatsAppConfirm() {
   if (whatsappCard) {
     whatsappCard.hidden = true;
@@ -191,6 +183,8 @@ function lockWhatsAppConfirm() {
 }
 
 function unlockWhatsAppConfirm(guestName) {
+  confirmedGuestName = guestName || "";
+
   if (whatsappCard) {
     whatsappCard.hidden = false;
   }
@@ -202,19 +196,12 @@ function unlockWhatsAppConfirm(guestName) {
   whatsappConfirmButton.disabled = false;
   whatsappConfirmButton.setAttribute("aria-disabled", "false");
   whatsappConfirmButton.textContent = unlockedWhatsAppButtonText;
-
-  if (whatsappNameInput && guestName && !whatsappNameInput.value.trim()) {
-    whatsappNameInput.value = guestName;
-  }
 }
 
 function resetConfirmationFlow() {
   hideStatusToast();
   lockWhatsAppConfirm();
-
-  if (whatsappNameInput) {
-    whatsappNameInput.value = "";
-  }
+  confirmedGuestName = "";
 
   if (presenceForm) {
     presenceForm.reset();
