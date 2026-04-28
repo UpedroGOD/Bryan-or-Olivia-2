@@ -1,4 +1,4 @@
-const eventDate = new Date("2026-05-24T13:00:00-03:00");
+const eventDate = new Date("2026-05-24T14:00:00-03:00");
 const countdownElement = document.querySelector(".countdown");
 const whatsappLinks = document.querySelectorAll(".message-link");
 const presenceForm = document.querySelector("#presence-form");
