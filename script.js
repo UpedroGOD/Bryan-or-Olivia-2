@@ -1,4 +1,4 @@
-const eventDate = new Date("2026-05-24T14:00:00-03:00");
+const eventDate = new Date("2026-05-31T14:00:00-03:00");
 const countdownElement = document.querySelector(".countdown");
 const whatsappLinks = document.querySelectorAll(".message-link");
 const presenceForm = document.querySelector("#presence-form");
@@ -12,7 +12,7 @@ const copyToast = document.querySelector("#copy-toast");
 const inviteConfig = window.INVITE_CONFIG || {};
 const whatsappNumber = "5531993586484";
 const whatsappMessageTemplate =
-  "Oi, eu (nome da pessoa)! Estou confirmando minha presença no chá revelação do dia 24 de maio 💙💖\n\nVai ser um prazer estar com vocês nesse momento tão especial e cheio de amor! Pode deixar que levarei as fraldas com todo carinho 🥰";
+  "Oi, eu (nome da pessoa)! Estou confirmando minha presença no chá revelação do dia 31 de maio 💙💖\n\nVai ser um prazer estar com vocês nesse momento tão especial e cheio de amor! Pode deixar que levarei as fraldas com todo carinho 🥰";
 const notificationSoundPath = "notification_o14egLP.mp3";
 const notificationAudio = new Audio(notificationSoundPath);
 const initialGirlAnimationDelay = 2500;
